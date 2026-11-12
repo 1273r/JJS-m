@@ -45,6 +45,7 @@ public class Events {
         event.getDispatcher().register(Commands.literal("jjs")
                 .then(Commands.literal("honored").executes(c -> choose(c.getSource(), Kits.HONORED)))
                 .then(Commands.literal("vessel").executes(c -> choose(c.getSource(), Kits.VESSEL)))
+                .then(Commands.literal("toji").executes(c -> choose(c.getSource(), Kits.TOJI)))
                 .then(Commands.literal("clear").executes(c -> choose(c.getSource(), "")))
                 .then(Commands.literal("awaken").executes(c -> {
                     ServerPlayer p = c.getSource().getPlayerOrException();
@@ -72,7 +73,7 @@ public class Events {
         if (cls.isEmpty()) {
             PacketDistributor.sendToPlayer(p, HudPayload.empty());
         }
-        String name = cls.equals(Kits.HONORED) ? "Honored One" : cls.equals(Kits.VESSEL) ? "Vessel" : "";
+        String name = cls.equals(Kits.HONORED) ? "Honored One" : cls.equals(Kits.VESSEL) ? "Vessel" : cls.equals(Kits.TOJI) ? "Toji" : "";
         src.sendSuccess(() -> Component.literal(cls.isEmpty() ? "Moveset removed" : "Moveset: " + name), false);
         return 1;
     }
