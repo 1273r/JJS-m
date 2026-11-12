@@ -96,6 +96,6 @@ public class JState {
         }
         float meter = awakened ? 100f * Math.max(0, awakeEnd - now) / AWAKEN_TICKS : awake;
         PacketDistributor.sendToPlayer(p, new HudPayload(cls, awakened, p.getHealth(), p.getMaxHealth(),
-                guard, meter, blocking, now < guardBrokenUntil, cue, left, total));
+                guard, meter, blocking, now < guardBrokenUntil, cue, tojiWeapon, left, total));
     }
 }
