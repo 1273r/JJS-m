@@ -221,7 +221,7 @@ public class Moves {
 
     public static void setBlock(ServerPlayer p, JState st, boolean on) {
         long n = now(p);
-        if (on && Kits.TOJI.equals(st.cls) && st.cast != null && st.cast.id.equals("flourish") && n <= st.tojiVariantUntil) { tojiPride(p, st); return; }
+        if (on && Kits.TOJI.equals(st.cls) && st.tojiTarget != null && st.cast != null && st.cast.id.equals("flourish") && n <= st.tojiVariantUntil) { tojiPride(p, st); return; }
         if (on) {
             if (!st.free(n) || n < st.guardBrokenUntil) return;
             st.blocking = true;
@@ -1063,6 +1063,7 @@ public class Moves {
 
     private static void tojiSwap(ServerPlayer p, JState st, long n) {
         if (st.cdLeft("hidden_inventory", n) > 0) return;
+        if (st.cast != null && st.cast.id.equals("rupture") && n <= st.tojiVariantUntil) { tojiReincarnation(p, st); return; }
         if (st.cast != null && st.cast.id.equals("flourish") && n <= st.tojiVariantUntil) { tojiGreed(p, st); return; }
         st.tojiWeapon = (st.tojiWeapon + (st.blocking ? 2 : 1)) % 3;
         st.setCd("hidden_inventory", 100, n);
@@ -1099,13 +1100,13 @@ public class Moves {
     }
 
     private static void tojiGreed(ServerPlayer p,JState st) {
-        LivingEntity e=tojiTarget(p,st);if(e==null||e.distanceTo(p)>8)return;st.tojiVariantUntil=0;st.tojiWeapon=1;
+        LivingEntity e=tojiTarget(p,st);if(e==null||e.distanceTo(p)>8)return;st.tojiVariantUntil=0;st.tojiWeapon=1;st.setCd("hidden_inventory",100,now(p));
         Cast c=begin(p,st,"the_greed",false,0,24);
         run(p,st,c,24,t->{if(t==2&&e.isAlive()){Combat.hit(p,e,3f,Combat.UNBLOCKABLE,true);Combat.knock(e,0,0.8,0);}if(t>=6&&t<=18&&t%3==0&&e.isAlive()&&e.distanceTo(p)<8){Combat.hit(p,e,1f,Combat.UNBLOCKABLE,true);Fx.dust(lv(p),Combat.mid(e),0.8f,0.9f,1f,1.2f,8,0.25);}if(t==21&&e.isAlive())Combat.knock(e,Combat.away(p,e).scale(0.8).add(0,-0.7,0));});
     }
 
     private static void tojiPride(ServerPlayer p,JState st) {
-        LivingEntity e=tojiTarget(p,st);if(e==null||e.distanceTo(p)>9)return;st.tojiVariantUntil=0;st.tojiWeapon=2;st.blocking=false;
+        LivingEntity e=tojiTarget(p,st);if(e==null||e.distanceTo(p)>9)return;st.tojiVariantUntil=0;st.tojiWeapon=2;st.setCd("hidden_inventory",100,now(p));st.blocking=false;
         Cast c=begin(p,st,"the_pride",false,0,24);
         run(p,st,c,24,t->{if(t==2&&e.isAlive()){Combat.hit(p,e,3f,Combat.UNBLOCKABLE,true);Combat.knock(e,0,0.6,0);}if(t==12&&e.isAlive()){Combat.hit(p,e,6f,Combat.UNBLOCKABLE,true);Combat.knock(e,0,-1.2,0);Fx.sfx(lv(p),Combat.mid(e),SoundEvents.ANVIL_LAND,1f,0.8f);}});
     }
@@ -1148,6 +1149,19 @@ public class Moves {
     private static void tojiTwirling(ServerPlayer p,JState st) {
         LivingEntity e=tojiTarget(p,st);st.tojiVariantUntil=0;Cast c=begin(p,st,"twirling_strike",false,0,26);
         run(p,st,c,26,t->{if(t>=3&&t<=18&&t%3==0&&e!=null&&e.isAlive()&&e.distanceTo(p)<10){Combat.hit(p,e,1.3f,Combat.UNBLOCKABLE,true);Fx.dust(lv(p),Combat.mid(e),0.8f,0.75f,0.55f,1.4f,8,0.3);}if(t==22&&e!=null&&e.isAlive())Combat.knock(e,Combat.away(p,e).scale(1.2));});
+    }
+
+
+
+    private static void tojiReincarnation(ServerPlayer p,JState st) {
+        LivingEntity e=tojiTarget(p,st); if(e==null||e.distanceTo(p)>12)return;
+        st.tojiVariantUntil=0; st.tojiWeapon=2; st.setCd("hidden_inventory",100,now(p));
+        Cast c=begin(p,st,"reincarnation",false,0,28);
+        run(p,st,c,28,t->{
+            if(t==3){Combat.hit(p,e,3f,Combat.UNBLOCKABLE,true);Combat.knock(e,0,0.9,0);Fx.dust(lv(p),Combat.mid(e),0.8f,0.85f,0.7f,2f,24,0.5);}
+            if(t>=8&&t<=20&&t%4==0&&e.isAlive()&&e.distanceTo(p)<12){Combat.hit(p,e,1.5f,Combat.UNBLOCKABLE,true);Fx.dust(lv(p),Combat.mid(e),0.8f,0.85f,0.7f,1.3f,10,0.3);}
+            if(t==25&&e.isAlive())Combat.knock(e,Combat.away(p,e).scale(1.0).add(0,-0.8,0));
+        });
     }
 
 }
