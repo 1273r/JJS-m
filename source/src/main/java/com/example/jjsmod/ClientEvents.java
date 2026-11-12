@@ -38,9 +38,11 @@ public class ClientEvents {
         if (key == GLFW.GLFW_KEY_F) {
             if (action == GLFW.GLFW_PRESS && mc.screen == null && !blockHeld) {
                 blockHeld = true;
+                ClientState.blocking = true;
                 send(Net.BLOCK_ON, 0, 0);
             } else if (action == GLFW.GLFW_RELEASE && blockHeld) {
                 blockHeld = false;
+                ClientState.blocking = false;
                 send(Net.BLOCK_OFF, 0, 0);
             }
             return;
@@ -92,6 +94,7 @@ public class ClientEvents {
         Minecraft mc = Minecraft.getInstance();
         if (blockHeld && (mc.screen != null || !InputConstants.isKeyDown(mc.getWindow().getWindow(), GLFW.GLFW_KEY_F))) {
             blockHeld = false;
+            ClientState.blocking = false;
             send(Net.BLOCK_OFF, 0, 0);
         }
     }
