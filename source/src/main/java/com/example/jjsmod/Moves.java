@@ -272,6 +272,16 @@ public class Moves {
             combatInstincts(p, st, n);
             return;
         }
+        // Special-input variants are checked before normal endlag gating, as in JJS.
+        if (id.equals("limitless") && st.cast != null && st.cast.id.equals("reversal_red")
+                && st.cast.live(p) && n - st.cast.start <= 12) {
+            if (st.cdLeft("limitless", n) <= 0) reversalRedSpecial(p, st);
+            return;
+        }
+        if (id.equals("limitless") && st.lastRapidTarget != null && n - st.lastRapidAt <= 50) {
+            if (st.cdLeft("limitless", n) <= 0) faceGrater(p, st);
+            return;
+        }
         if (!st.free(n) || st.blocking || st.cdLeft(id, n) > 0) return;
 
         switch (id) {
@@ -478,35 +488,7 @@ public class Moves {
             }
         }
         if (target != null) {
-            LivingEntity grabbed = target;
-            Vec3 away = Combat.away(p, grabbed);
-            Vec3 behind = grabbed.position().subtract(away.scale(1.0));
-            Fx.dust(l, p.position().add(0, 1, 0), 0.7f, 0.9f, 1f, 2f, 22, 0.45);
-            Fx.sfx(l, p.position(), SoundEvents.ENDERMAN_TELEPORT, 1f, 1.5f);
-            p.teleportTo(behind.x, behind.y, behind.z);
-            Cast c = begin(p, st, "face_grater", true, 0, 24);
-            run(p, st, c, 24, t -> {
-                if (!grabbed.isAlive()) return;
-                if (t <= 14) {
-                    Vec3 forward = Combat.flat(p);
-                    Vec3 drag = p.position().add(forward.scale(1.35));
-                    Combat.place(grabbed, drag);
-                    if (t % 3 == 0) {
-                        p.swing(InteractionHand.MAIN_HAND, true);
-                        Fx.dust(l, Combat.mid(grabbed), 0.75f, 0.85f, 1f, 1.0f, 5, 0.2);
-                        Combat.hit(p, grabbed, 7.52f / 5f, Combat.BLOCK_360, true);
-                    }
-                }
-                if (t == 18) {
-                    p.swing(InteractionHand.MAIN_HAND, true);
-                    if (Combat.hit(p, grabbed, 2.5f, Combat.BLOCK_360, true)) {
-                        Vec3 launch = Combat.flat(p);
-                        Combat.knock(grabbed, launch.x * 1.15, 0.42, launch.z * 1.15);
-                        Fx.sfx(l, Combat.mid(grabbed), SoundEvents.PLAYER_ATTACK_CRIT, 1.1f, 1.15f);
-                    }
-                    st.lastRapidTarget = null;
-                }
-            });
+            faceGrater(p, st);
             return;
         }
 
@@ -552,6 +534,64 @@ public class Moves {
         p.teleportTo(dest.x, dest.y, dest.z);
         p.fallDistance = 0;
         Fx.dust(l, dest.add(0, 1, 0), 0.7f, 0.9f, 1f, 2f, 25, 0.5);
+    }
+
+    /** Rapid Punches follow-up: drag the grabbed target, then throw them forward. */
+    private static void faceGrater(ServerPlayer p, JState st) {
+        long n = now(p);
+        if (st.cdLeft("limitless", n) > 0 || st.lastRapidTarget == null) return;
+        net.minecraft.world.entity.Entity entity = lv(p).getEntity(st.lastRapidTarget);
+        if (!(entity instanceof LivingEntity grabbed) || !grabbed.isAlive() || grabbed.distanceTo(p) > 8.0) {
+            st.lastRapidTarget = null;
+            return;
+        }
+        st.setCd("limitless", Kits.cd("limitless"), n);
+        Vec3 away = Combat.away(p, grabbed);
+        Vec3 behind = grabbed.position().subtract(away.scale(1.0));
+        Fx.dust(lv(p), p.position().add(0, 1, 0), 0.7f, 0.9f, 1f, 2f, 22, 0.45);
+        Fx.sfx(lv(p), p.position(), SoundEvents.ENDERMAN_TELEPORT, 1f, 1.5f);
+        p.teleportTo(behind.x, behind.y, behind.z);
+        Cast c = begin(p, st, "face_grater", true, 0, 24);
+        run(p, st, c, 24, t -> {
+            if (!grabbed.isAlive()) return;
+            if (t <= 14) {
+                Combat.place(grabbed, p.position().add(Combat.flat(p).scale(1.35)));
+                if (t == 2 || t == 5 || t == 8 || t == 11 || t == 14) {
+                    p.swing(InteractionHand.MAIN_HAND, true);
+                    Fx.dust(lv(p), Combat.mid(grabbed), 0.75f, 0.85f, 1f, 1.0f, 5, 0.2);
+                    Combat.hit(p, grabbed, 7.52f / 5f, Combat.BLOCK_360, true);
+                }
+            }
+            if (t == 18) {
+                p.swing(InteractionHand.MAIN_HAND, true);
+                if (Combat.hit(p, grabbed, 2.5f, Combat.BLOCK_360, true)) {
+                    Vec3 launch = Combat.flat(p);
+                    Combat.knock(grabbed, launch.x * 1.15, 0.42, launch.z * 1.15);
+                    Fx.sfx(lv(p), Combat.mid(grabbed), SoundEvents.PLAYER_ATTACK_CRIT, 1.1f, 1.15f);
+                }
+                st.lastRapidTarget = null;
+            }
+        });
+    }
+
+    /** Reversal Red's special variant: phase behind the target and detonate Red at point blank. */
+    private static void reversalRedSpecial(ServerPlayer p, JState st) {
+        long n = now(p);
+        List<LivingEntity> targets = Combat.line(p, 35.0, 1.4);
+        if (targets.isEmpty()) return;
+        LivingEntity target = targets.get(0);
+        cancelCast(st);
+        st.setCd("limitless", Kits.cd("limitless"), n);
+        Vec3 away = Combat.away(p, target);
+        Vec3 dest = target.position().subtract(away.scale(1.1));
+        Fx.dust(lv(p), p.position().add(0, 1, 0), 1f, 0.12f, 0.12f, 2.2f, 28, 0.5);
+        Fx.sfx(lv(p), p.position(), SoundEvents.ENDERMAN_TELEPORT, 1.2f, 1.4f);
+        p.teleportTo(dest.x, dest.y, dest.z);
+        p.fallDistance = 0;
+        Vec3 point = Combat.mid(target);
+        Fx.dust(lv(p), point, 1f, 0.08f, 0.08f, 2.8f, 50, 0.55);
+        redImpact(p, point, 3.0, 12.5f, 2.0, false);
+        st.lockUntil = n + 12;
     }
 
     /** Lapse Blue MAX - 44 (2.2 per tick x 20), 17 s, unblockable. [wiki] */
