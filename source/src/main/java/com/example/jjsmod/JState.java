@@ -62,13 +62,25 @@ public class JState {
         return now >= stunUntil && now >= lockUntil;
     }
 
+    private String cooldownKey(String id) {
+        if (!Kits.TOJI.equals(cls)) return id;
+        return switch (id) {
+            case "flourish", "transcend", "lasso", "the_wrath", "the_greed", "the_pride", "ascend" -> "toji_slot2";
+            case "debilitate", "rupture", "whiplash", "paradise", "reincarnation", "twirling_strike" -> "toji_slot3";
+            default -> id;
+        };
+    }
+
     public int cdLeft(String id, long now) {
-        Long e = cdEnd.get(id);
+        Long e = cdEnd.get(cooldownKey(id));
         return e == null ? 0 : (int) Math.max(0, e - now);
     }
 
     public void setCd(String id, int ticks, long now) {
-        cdEnd.put(id, now + ticks);
+        String key = cooldownKey(id);
+        if (Kits.TOJI.equals(cls) && key.equals("toji_slot2")) ticks = 16 * 20;
+        if (Kits.TOJI.equals(cls) && key.equals("toji_slot3")) ticks = 15 * 20;
+        cdEnd.put(key, now + ticks);
     }
 
     public void addAwake(float v) {
