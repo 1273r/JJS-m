@@ -113,53 +113,86 @@ public class Moves {
     //  basic combat
     // =====================================================================
 
-    /** M1: 4-hit string, 4th hit knocks back. Damage values are [est]. */
+    /**
+     * Four-stage JJS-style M1 chain. The server owns timing and hit registration;
+     * the forgiving melee volume, small forward carry, hitstun and distinct finisher
+     * recovery make the chain feel less like four isolated vanilla clicks.
+     */
     public static void m1(ServerPlayer p, JState st) {
         long n = now(p);
         if (st.blocking || !st.free(n)) return;
-        // Buffer one M1 during the final six ticks of recovery. This makes rapid
-        // strings forgiving without allowing unlimited queued attacks.
+
         if (n < st.m1Ready) {
-            if (st.m1Ready - n <= 6) {
+            if (st.m1Ready - n <= 7) {
                 st.m1Buffered = true;
-                st.m1BufferUntil = n + 7;
+                st.m1BufferUntil = n + 8;
             }
             return;
         }
+
         st.m1Buffered = false;
-        if (n - st.lastM1 > 25) st.m1 = 0;
+        if (n - st.lastM1 > 26) st.m1 = 0;
         st.m1++;
+        if (st.m1 > 4) st.m1 = 1;
+
+        final int chain = st.m1;
+        final boolean finisher = chain == 4;
         st.lastM1 = n;
-        boolean fin = st.m1 >= 4;
-        if (fin) st.m1 = 0;
-        st.m1Ready = n + (fin ? 18 : 7);
+        st.m1Ready = n + (finisher ? 19 : 7);
 
         p.swing(InteractionHand.MAIN_HAND, true);
-        boolean shrine = st.awakened && Kits.VESSEL.equals(st.cls); // Shrine passive: M1s are 24-stud slashes [wiki]
-        double range = shrine ? 24 * Combat.STUD : 3.2;
-        p.setDeltaMovement(p.getDeltaMovement().add(Combat.flat(p).scale(0.25)));
-        p.hurtMarked = true;
+        Vec3 forward = Combat.flat(p);
+        boolean shrine = st.awakened && Kits.VESSEL.equals(st.cls);
+        double range = shrine ? 24 * Combat.STUD : 3.55;
+        List<LivingEntity> targets = shrine
+                ? Combat.line(p, range, 1.0)
+                : Combat.melee(p, range, finisher ? 1.45 : 1.20);
+
+        // Small, capped forward carry gives every punch momentum without teleporting.
+        if (!shrine && p.onGround()) {
+            Vec3 velocity = p.getDeltaMovement();
+            p.setDeltaMovement(velocity.x * 0.72 + forward.x * (finisher ? 0.20 : 0.14),
+                    velocity.y, velocity.z * 0.72 + forward.z * (finisher ? 0.20 : 0.14));
+            p.hurtMarked = true;
+        }
 
         if (shrine) {
-            Vec3 s = p.getEyePosition();
-            Combat.trail(s, s.add(p.getLookAngle().scale(range)), 1.0, v -> sweepFx(p, v));
+            Vec3 from = p.getEyePosition();
+            Combat.trail(from, from.add(p.getLookAngle().scale(range)), 0.9,
+                    point -> sweepFx(p, point));
         }
-        List<LivingEntity> ts = Combat.line(p, range, shrine ? 0.8 : 0.9);
-        if (ts.isEmpty()) {
-            Fx.sfx(lv(p), p.position(), SoundEvents.PLAYER_ATTACK_WEAK, 0.7f, 1.2f);
+
+        if (targets.isEmpty()) {
+            // Whiffs have a little extra recovery and break the chain, preventing
+            // empty-air spam from preserving a fully primed fourth hit.
+            st.m1 = 0;
+            st.m1Ready = n + 10;
+            Fx.sfx(lv(p), p.position(), SoundEvents.PLAYER_ATTACK_WEAK, 0.65f, finisher ? 0.82f : 1.05f);
             return;
         }
-        LivingEntity t = ts.get(0);
-        if (Combat.hit(p, t, fin ? 4f : 2.5f, shrine ? Combat.BLOCK_360 : Combat.BLOCKABLE, true)) {
-            Vec3 a = Combat.away(p, t);
-            if (fin) {
-                Combat.knock(t, a.x * 1.1, 0.35, a.z * 1.1);
-                Fx.sfx(lv(p), Combat.mid(t), SoundEvents.PLAYER_ATTACK_CRIT, 1f, 0.9f);
-            } else {
-                Combat.knock(t, a.x * 0.25, 0.1, a.z * 0.25);
-                Fx.sfx(lv(p), Combat.mid(t), SoundEvents.PLAYER_ATTACK_STRONG, 0.8f, 1.1f);
-            }
-            Fx.dust(lv(p), Combat.mid(t), 1f, 1f, 1f, 1.2f, 6, 0.3);
+
+        LivingEntity target = targets.get(0);
+        float damage = finisher ? 5.0f : 2.5f;
+        boolean landed = Combat.hit(p, target, damage,
+                shrine ? Combat.BLOCK_360 : Combat.BLOCKABLE, true);
+        if (!landed) {
+            st.m1 = 0;
+            st.m1Ready = n + 9;
+            Fx.sfx(lv(p), p.position(), SoundEvents.SHIELD_BLOCK, 0.7f, 1.2f);
+            return;
+        }
+
+        // Brief hitstun prevents the victim from instantly trading out of the string.
+        stun(target, finisher ? 14 : 9);
+        Vec3 away = Combat.away(p, target);
+        if (finisher) {
+            Combat.knock(target, away.x * 1.15, 0.34, away.z * 1.15);
+            Fx.sfx(lv(p), Combat.mid(target), SoundEvents.PLAYER_ATTACK_CRIT, 1.0f, 0.82f);
+            Fx.dust(lv(p), Combat.mid(target), 1.0f, 0.82f, 0.62f, 1.9f, 14, 0.42);
+        } else {
+            Combat.knock(target, away.x * 0.20, 0.08, away.z * 0.20);
+            Fx.sfx(lv(p), Combat.mid(target), SoundEvents.PLAYER_ATTACK_STRONG, 0.85f, 0.92f + chain * 0.08f);
+            Fx.dust(lv(p), Combat.mid(target), 0.92f, 0.94f, 1.0f, 1.25f, 8, 0.28);
         }
     }
 
