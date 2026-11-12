@@ -41,6 +41,14 @@ public final class CombatAnimations {
                 boolean finisher = ClientState.cls.equals(Kits.TOJI) && ClientState.tojiWeapon != 2
                         ? ClientState.attackStage == 3 : ClientState.attackStage == 4;
 
+                if (ClientState.cls.equals(Kits.TOJI)) {
+                    arm.xRot = -0.65f - wind * 0.45f - strike * 1.35f + recover * 0.3f;
+                    arm.yRot = side * (-0.12f + wind * 0.28f + strike * 0.42f);
+                    arm.zRot = side * (0.18f + wind * 0.22f - strike * 0.12f);
+                    support.xRot = -0.22f - strike * 0.25f;
+                    model.body.yRot += -side * strike * (finisher ? 0.42f : 0.28f);
+                    model.body.xRot -= strike * 0.06f;
+                } else {
                 // Load the shoulder back, drive the fist through the target, then recoil.
                 arm.xRot = -0.28f - wind * 0.78f - strike * (finisher ? 1.78f : 1.30f)
                         + recover * 0.38f;
@@ -50,6 +58,7 @@ public final class CombatAnimations {
                 model.body.yRot += -side * strike * (finisher ? 0.30f : 0.20f);
                 model.body.xRot -= strike * (finisher ? 0.10f : 0.045f);
                 model.head.yRot += side * strike * 0.035f;
+                }
             }
 
             if (ClientState.skillTicks > 0 && block < 0.15f) {
