@@ -53,3 +53,14 @@ Toji has three cursed tools. **R** cycles Split Soul Katana → Inverted Spear o
 - Chain: Lasso / Whiplash
 
 The move timings and hitboxes are Minecraft implementations and still require live in-game tuning; this is not a claim of frame-perfect parity.
+
+
+## Toji / Hired Killer
+
+Three cursed tools rotate with **R**: Split Soul Katana → Inverted Spear of Heaven → Chain of a Thousand Miles. Hold **F** while pressing R to cycle backwards. The equipped tool changes the two move slots and M1 reach/string. Flourish follow-ups: repeat Flourish = **The Wrath**, R = **The Greed**, F = **The Pride**. Repeat Transcend = **Ascend**, repeat Rupture = **Paradise**, R during Rupture = **Reincarnation**, and repeat Whiplash = **Twirling Strike**. G currently matches JJS's unfinished Puppet of Carnage state: 50 HP heal and cooldown reset.
+
+- Katana: Flourish / Debilitate
+- Spear: Transcend / Rupture
+- Chain: Lasso / Whiplash
+
+Toji has custom weapon-themed HUD icons and blade/chain attack posing. Move timings, hitboxes, and damage are approximations that still require in-game tuning; they are not claimed to be frame-perfect parity.
