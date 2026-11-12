@@ -1,0 +1,25 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+
+[[mods]]
+modId = "jjsmod"
+version = "1.0.0"
+displayName = "JJS Movesets"
+description = '''
+Jujutsu Shenanigans movesets (Honored One, Vessel): M1 combo, Q dash, F block, timed Black Flash, custom HUD. Install on client AND server.
+'''
+
+[[dependencies.jjsmod]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.jjsmod]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
