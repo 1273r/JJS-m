@@ -54,10 +54,14 @@ public class ClientEvents {
             ClientState.startDash();
             send(Net.DASH, in.forwardImpulse, in.leftImpulse);
         } else if (key >= GLFW.GLFW_KEY_1 && key <= GLFW.GLFW_KEY_4) {
-            send(Net.SKILL, key - GLFW.GLFW_KEY_1, 0);
+            int slot = key - GLFW.GLFW_KEY_1;
+            ClientState.startSkill(slot);
+            send(Net.SKILL, slot, 0);
         } else if (key == GLFW.GLFW_KEY_R) {
+            ClientState.startSkill(4);
             send(Net.SKILL, 4, 0);
         } else if (key == GLFW.GLFW_KEY_X) {
+            ClientState.startSkill(5);
             send(Net.SKILL, 5, 0);
         } else if (key == GLFW.GLFW_KEY_G) {
             send(Net.AWAKEN, 0, 0);
