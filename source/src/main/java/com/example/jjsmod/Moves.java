@@ -208,7 +208,13 @@ public class Moves {
         double dz = fwd * Math.cos(yaw) + left * Math.sin(yaw);
         double len = Math.sqrt(dx * dx + dz * dz);
         if (len < 1.0E-4) return;
-        double speed = fwd < 0 && Math.abs(left) < 0.5f ? 1.7 : 2.0;
+        boolean back = fwd < 0 && Math.abs(left) < 0.5f;
+        double speed = back ? 1.7 : 2.0;
+        if (Kits.TOJI.equals(st.cls)) {
+            if (st.tojiWeapon == 1 && front) speed = 2.75; // Spear is Toji's gap-close tool.
+            else if (st.tojiWeapon == 2 && back) speed = 2.15; // Chain has the longer retreat.
+            else if (st.tojiWeapon == 0 && front) speed = 1.55; // Katana's forward dash is deliberately short.
+        }
         p.setDeltaMovement(dx / len * speed, 0.12, dz / len * speed);
         p.hurtMarked = true;
         st.dashReady = n + (front ? 60 : 40);
