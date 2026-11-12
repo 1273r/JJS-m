@@ -1,9 +1,9 @@
 # JJS Movesets (NeoForge 1.21.1)
 
-Jujutsu Shenanigans' **Honored One** and **Vessel** in Minecraft. Install on client and server.
+Jujutsu Shenanigans' **Honored One**, **Vessel**, and **Toji / Hired Killer** in Minecraft. Install on client and server.
 
 ## Setup
-`/jjs honored` or `/jjs vessel` picks a class. Other commands: `/jjs clear`, `/jjs awaken` (fill the awakening meter), `/jjs resetcd`.
+`/jjs honored`, `/jjs vessel`, or `/jjs toji` picks a class. Other commands: `/jjs clear`, `/jjs awaken` (fill the awakening meter), `/jjs resetcd`.
 
 While you have a class: health, hunger, armor, XP and the hotbar are hidden and replaced by the JJS HUD.
 Max health is 100 (JJS scale) so the wiki damage numbers apply 1:1. Hunger never drops, natural regen is turned off
@@ -42,3 +42,14 @@ Open 30 / 40s, Rush 25 / 15s, Malevolent Shrine (X) 78 slashes x 2 / 120s.
   throwable pickup variant of Combat Instincts, air variants, finishers, "+20.9 on kill" on Blue MAX.
 - Black Flash timing is server-side, so very high ping will feel off.
 - Studs are converted at 1 stud = 0.28 blocks.
+
+
+## Toji / Hired Killer
+
+Toji has three cursed tools. **R** cycles Split Soul Katana → Inverted Spear of Heaven → Chain of a Thousand Miles. Flourish follow-ups: Flourish again = **The Wrath**, R = **The Greed**, F = **The Pride**. Transcend again = **Ascend**, Rupture again = **Paradise**, and Whiplash again = **Twirling Strike**. G currently matches JJS's unfinished Puppet of Carnage awakening: 50 HP heal and cooldown reset.
+
+- Katana: Flourish / Debilitate
+- Spear: Transcend / Rupture
+- Chain: Lasso / Whiplash
+
+The move timings and hitboxes are Minecraft implementations and still require live in-game tuning; this is not a claim of frame-perfect parity.
