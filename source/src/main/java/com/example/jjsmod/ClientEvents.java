@@ -49,6 +49,7 @@ public class ClientEvents {
 
         if (key == GLFW.GLFW_KEY_Q) {
             Input in = mc.player.input;
+            ClientState.startDash();
             send(Net.DASH, in.forwardImpulse, in.leftImpulse);
         } else if (key >= GLFW.GLFW_KEY_1 && key <= GLFW.GLFW_KEY_4) {
             send(Net.SKILL, key - GLFW.GLFW_KEY_1, 0);
@@ -67,6 +68,7 @@ public class ClientEvents {
         if (!ClientState.active || !e.isAttack()) return;
         e.setCanceled(true);
         e.setSwingHand(false);
+        ClientState.startAttack();
         send(Net.M1, 0, 0);
     }
 
@@ -86,6 +88,7 @@ public class ClientEvents {
     /** Safety: release block if F is no longer held (e.g. a screen opened). */
     @SubscribeEvent
     public static void onTickPost(ClientTickEvent.Post e) {
+        ClientState.tickAnimations();
         Minecraft mc = Minecraft.getInstance();
         if (blockHeld && (mc.screen != null || !InputConstants.isKeyDown(mc.getWindow().getWindow(), GLFW.GLFW_KEY_F))) {
             blockHeld = false;
