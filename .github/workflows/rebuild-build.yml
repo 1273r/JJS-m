@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - rebuild/combat-foundation
+      - rebuild/jjs-overhaul
     paths:
       - 'source/**'
       - '.github/workflows/rebuild-build.yml'
