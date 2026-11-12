@@ -1,0 +1,31 @@
+name: Build mod
+on:
+  push:
+    paths:
+      - 'jjsmod.zip'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack project archive
+        run: |
+          test -f jjsmod.zip
+          unzip -q jjsmod.zip -d extracted
+          test -f extracted/jjsmod/build.gradle
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.10.2
+      - name: Build
+        working-directory: extracted/jjsmod
+        run: gradle build --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jjsmod-jar
+          path: extracted/jjsmod/build/libs/*.jar
