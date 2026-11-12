@@ -142,6 +142,17 @@ public class Events {
         sp.getFoodData().setFoodLevel(20); // no hunger in JJS
         sp.getFoodData().setSaturation(5f);
 
+        // Consume a single buffered M1 as soon as recovery ends. Expired inputs
+        // are discarded, so a click cannot unexpectedly fire much later.
+        if (st.m1Buffered) {
+            if (now > st.m1BufferUntil || st.blocking || now < st.stunUntil) {
+                st.m1Buffered = false;
+            } else if (now >= st.m1Ready && st.free(now)) {
+                st.m1Buffered = false;
+                Moves.m1(sp, st);
+            }
+        }
+
         if (st.blocking) {
             sp.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 3, 1, false, false));
         } else if (now >= st.guardBrokenUntil && st.guard < JState.MAX_GUARD) {
