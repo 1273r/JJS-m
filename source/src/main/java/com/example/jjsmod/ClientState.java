@@ -4,6 +4,7 @@ public class ClientState {
     public static boolean active;
     public static String cls = "";
     public static boolean awakened, blocking, guardBroken, bfCue;
+    public static int tojiWeapon;
     public static float hp, maxHp, guard, awake;
     public static int[] left = new int[6];
     public static int[] total = new int[6];
@@ -54,6 +55,7 @@ public class ClientState {
         blocking = p.blocking();
         guardBroken = p.guardBroken();
         bfCue = p.bfCue();
+        tojiWeapon = p.tojiWeapon();
         left = p.left();
         total = p.total();
     }
