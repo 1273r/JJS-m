@@ -15,7 +15,8 @@ public class ClientState {
     public static float blockBlend;
 
     public static void startAttack() {
-        attackStage = attackStage % 4 + 1;
+        int max = cls.equals(Kits.TOJI) && tojiWeapon != 2 ? 3 : 4;
+        attackStage = attackStage % max + 1;
         attackTicks = 9;
     }
 
