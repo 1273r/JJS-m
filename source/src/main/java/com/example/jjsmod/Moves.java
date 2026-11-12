@@ -269,7 +269,7 @@ public class Moves {
     // =====================================================================
 
     public static void skill(ServerPlayer p, JState st, int slot) {
-        String[] sl = Kits.slots(st.cls, st.awakened);
+        String[] sl = Kits.TOJI.equals(st.cls) ? Kits.tojiSlots(st.tojiWeapon) : Kits.slots(st.cls, st.awakened);
         if (slot < 0 || slot >= sl.length) return;
         String id = sl[slot];
         if (id.isEmpty()) return;
