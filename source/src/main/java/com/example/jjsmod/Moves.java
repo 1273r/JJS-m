@@ -220,6 +220,7 @@ public class Moves {
 
     public static void setBlock(ServerPlayer p, JState st, boolean on) {
         long n = now(p);
+        if (on && Kits.TOJI.equals(st.cls) && st.cast != null && st.cast.id.equals("flourish") && n <= st.tojiVariantUntil) { tojiPride(p, st); return; }
         if (on) {
             if (!st.free(n) || n < st.guardBrokenUntil) return;
             st.blocking = true;
@@ -239,6 +240,9 @@ public class Moves {
         st.awakeEnd = n + JState.AWAKEN_TICKS;
         if (Kits.VESSEL.equals(st.cls)) {
             p.heal(45f); // King of Curses heals 45 [wiki]
+        } else if (Kits.TOJI.equals(st.cls)) {
+            p.heal(50f);
+            st.cdEnd.clear();
         }
         ServerLevel l = lv(p);
         Fx.sfx(l, p.position(), SoundEvents.BEACON_ACTIVATE, 1.5f, 0.6f);
@@ -268,6 +272,8 @@ public class Moves {
             blackFlashPress(p, st, n);
             return;
         }
+        if (Kits.TOJI.equals(st.cls) && id.equals("hidden_inventory")) { tojiSwap(p, st, n); return; }
+        if (Kits.TOJI.equals(st.cls) && tojiVariant(p, st, id, n)) return;
         if (id.equals("combat_instincts")) {
             combatInstincts(p, st, n);
             return;
@@ -303,6 +309,12 @@ public class Moves {
             case "open" -> open(p, st);
             case "rush" -> rush(p, st);
             case "malevolent_shrine" -> malevolentShrine(p, st);
+            case "flourish" -> tojiFlourish(p, st);
+            case "debilitate" -> tojiDebilitate(p, st);
+            case "transcend" -> tojiTranscend(p, st);
+            case "rupture" -> tojiRupture(p, st);
+            case "lasso" -> tojiLasso(p, st);
+            case "whiplash" -> tojiWhiplash(p, st);
             default -> { }
         }
     }
@@ -1032,4 +1044,102 @@ public class Moves {
             }
         });
     }
+
+
+    // Toji / Hired Killer: three cursed tools and seven follow-up variants.
+    private static LivingEntity tojiTarget(ServerPlayer p, JState st) {
+        if (st.tojiTarget == null) return null;
+        net.minecraft.world.entity.Entity e = lv(p).getEntity(st.tojiTarget);
+        return e instanceof LivingEntity le && le.isAlive() ? le : null;
+    }
+
+    private static void tojiSwap(ServerPlayer p, JState st, long n) {
+        if (st.cdLeft("hidden_inventory", n) > 0) return;
+        if (st.cast != null && st.cast.id.equals("flourish") && n <= st.tojiVariantUntil) { tojiGreed(p, st); return; }
+        st.tojiWeapon = (st.tojiWeapon + 1) % 3;
+        st.setCd("hidden_inventory", 100, n);
+        st.m1 = 0; st.m1Ready = n + 3;
+        Fx.sfx(lv(p), p.position(), SoundEvents.ITEM_PICKUP, 1.2f, 0.7f + st.tojiWeapon * 0.2f);
+        Fx.dust(lv(p), p.position().add(0,1,0), 0.8f,0.75f,0.55f,1.5f,24,0.5);
+        p.displayClientMessage(Component.literal(new String[]{"SPLIT SOUL KATANA","INVERTED SPEAR OF HEAVEN","CHAIN OF A THOUSAND MILES"}[st.tojiWeapon]), true);
+    }
+
+    private static boolean tojiVariant(ServerPlayer p, JState st, String id, long n) {
+        if (st.cast == null || !st.cast.live(p) || n > st.tojiVariantUntil) return false;
+        if (id.equals("flourish") && st.cast.id.equals("flourish")) tojiWrath(p,st);
+        else if (id.equals("transcend") && st.cast.id.equals("transcend")) tojiAscend(p,st);
+        else if (id.equals("rupture") && st.cast.id.equals("rupture")) tojiParadise(p,st);
+        else if (id.equals("whiplash") && st.cast.id.equals("whiplash")) tojiTwirling(p,st);
+        else return false;
+        return true;
+    }
+
+    private static void tojiFlourish(ServerPlayer p,JState st) {
+        long n=now(p); ServerLevel l=lv(p); Cast c=begin(p,st,"flourish",true,7,20);
+        st.tojiVariantUntil=n+28; st.tojiTarget=null;
+        run(p,st,c,20,t->{
+            Vec3 at=p.getEyePosition().add(p.getLookAngle().scale(1.2));
+            if(t<8) Fx.dust(l,at,0.75f,0.8f,0.9f,1.2f,6,0.25);
+            if(t==8){List<LivingEntity>a=Combat.line(p,3.8,1.2);if(!a.isEmpty()&&Combat.hit(p,a.get(0),5f,Combat.UNBLOCKABLE,true)){st.tojiTarget=a.get(0).getUUID();stun(a.get(0),12);Combat.knock(a.get(0),Combat.away(p,a.get(0)).scale(0.45));Fx.dust(l,Combat.mid(a.get(0)),0.8f,0.85f,1f,2f,22,0.5);}}
+        });
+    }
+
+    private static void tojiWrath(ServerPlayer p,JState st) {
+        LivingEntity e=tojiTarget(p,st); if(e==null||e.distanceTo(p)>8)return;
+        st.tojiVariantUntil=0; Cast c=begin(p,st,"the_wrath",false,0,22);
+        run(p,st,c,22,t->{if((t==2||t==7||t==12)&&e.isAlive()&&e.distanceTo(p)<8){Combat.hit(p,e,t==12?3f:2f,Combat.UNBLOCKABLE,true);p.swing(InteractionHand.MAIN_HAND,true);if(t==12)Combat.knock(e,Combat.away(p,e).scale(1));Fx.dust(lv(p),Combat.mid(e),0.8f,0.85f,1f,1.5f,12,0.3);}});
+    }
+
+    private static void tojiGreed(ServerPlayer p,JState st) {
+        LivingEntity e=tojiTarget(p,st);if(e==null||e.distanceTo(p)>8)return;st.tojiVariantUntil=0;st.tojiWeapon=1;
+        Cast c=begin(p,st,"the_greed",false,0,24);
+        run(p,st,c,24,t->{if(t==2&&e.isAlive()){Combat.hit(p,e,3f,Combat.UNBLOCKABLE,true);Combat.knock(e,0,0.8,0);}if(t>=6&&t<=18&&t%3==0&&e.isAlive()&&e.distanceTo(p)<8){Combat.hit(p,e,1f,Combat.UNBLOCKABLE,true);Fx.dust(lv(p),Combat.mid(e),0.8f,0.9f,1f,1.2f,8,0.25);}if(t==21&&e.isAlive())Combat.knock(e,Combat.away(p,e).scale(0.8).add(0,-0.7,0));});
+    }
+
+    private static void tojiPride(ServerPlayer p,JState st) {
+        LivingEntity e=tojiTarget(p,st);if(e==null||e.distanceTo(p)>9)return;st.tojiVariantUntil=0;st.tojiWeapon=2;st.blocking=false;
+        Cast c=begin(p,st,"the_pride",false,0,24);
+        run(p,st,c,24,t->{if(t==2&&e.isAlive()){Combat.hit(p,e,3f,Combat.UNBLOCKABLE,true);Combat.knock(e,0,0.6,0);}if(t==12&&e.isAlive()){Combat.hit(p,e,6f,Combat.UNBLOCKABLE,true);Combat.knock(e,0,-1.2,0);Fx.sfx(lv(p),Combat.mid(e),SoundEvents.ANVIL_LAND,1f,0.8f);}});
+    }
+
+    private static void tojiDebilitate(ServerPlayer p,JState st) {
+        Cast c=begin(p,st,"debilitate",true,4,32);LivingEntity[] e={null};
+        run(p,st,c,32,t->{if(t>=4&&t<=10&&e[0]==null){p.setDeltaMovement(Combat.flat(p).scale(1.35));p.hurtMarked=true;List<LivingEntity>a=Combat.line(p,2.8,1.1);if(!a.isEmpty()&&Combat.hit(p,a.get(0),4f,Combat.BLOCKABLE,true)){e[0]=a.get(0);Combat.knock(e[0],0,0.65,0);}}if(e[0]!=null&&e[0].isAlive()){if(t==15||t==20)Combat.hit(p,e[0],4.5f,Combat.BLOCKABLE,true);if(t==27){Combat.hit(p,e[0],4f,Combat.BLOCKABLE,true);Combat.knock(e[0],0,-1.3,0);Fx.sfx(lv(p),e[0].position(),SoundEvents.ANVIL_LAND,1f,1f);}}});
+    }
+
+    private static void tojiTranscend(ServerPlayer p,JState st) {
+        Cast c=begin(p,st,"transcend",true,3,18);st.tojiVariantUntil=now(p)+22;st.tojiTarget=null;
+        run(p,st,c,18,t->{if(t<=7){p.setDeltaMovement(Combat.flat(p).scale(1.55).add(0,0.04,0));p.hurtMarked=true;lv(p).sendParticles(ParticleTypes.ELECTRIC_SPARK,p.getX(),p.getY()+1,p.getZ(),5,0.25,0.35,0.25,0.02);}if(t==8){List<LivingEntity>a=Combat.line(p,3.4,1.2);if(!a.isEmpty()&&Combat.hit(p,a.get(0),12f,Combat.BLOCKABLE,true)){st.tojiTarget=a.get(0).getUUID();Combat.knock(a.get(0),Combat.away(p,a.get(0)).scale(0.7));}}});
+    }
+
+    private static void tojiAscend(ServerPlayer p,JState st) {
+        LivingEntity e=tojiTarget(p,st);if(e==null||e.distanceTo(p)>8)return;st.tojiVariantUntil=0;Cast c=begin(p,st,"ascend",false,0,20);
+        run(p,st,c,20,t->{if(t==3&&e.isAlive()){Combat.hit(p,e,5f,Combat.UNBLOCKABLE,true);Combat.knock(e,0,1.15,0);Fx.dust(lv(p),Combat.mid(e),0.8f,0.9f,1f,2f,25,0.5);}if(t==10&&e.isAlive())Combat.hit(p,e,4f,Combat.UNBLOCKABLE,true);});
+    }
+
+    private static void tojiRupture(ServerPlayer p,JState st) {
+        Cast c=begin(p,st,"rupture",true,6,26);st.tojiVariantUntil=now(p)+34;st.tojiTarget=null;
+        run(p,st,c,26,t->{if(t==6){List<LivingEntity>a=Combat.line(p,4.5,1.2);if(!a.isEmpty()&&Combat.hit(p,a.get(0),8f,Combat.UNBLOCKABLE,true)){st.tojiTarget=a.get(0).getUUID();Combat.knock(a.get(0),0,1,0);}}});
+    }
+
+    private static void tojiParadise(ServerPlayer p,JState st) {
+        LivingEntity e=tojiTarget(p,st);if(e==null||e.distanceTo(p)>10)return;st.tojiVariantUntil=0;Cast c=begin(p,st,"paradise",false,0,22);
+        run(p,st,c,22,t->{if(t==4&&e.isAlive()){Combat.hit(p,e,14f,Combat.UNBLOCKABLE,true);Combat.knock(e,Combat.away(p,e).scale(0.9).add(0,-1,0));Fx.sfx(lv(p),Combat.mid(e),SoundEvents.PLAYER_ATTACK_CRIT,1.3f,0.7f);}});
+    }
+
+    private static void tojiLasso(ServerPlayer p,JState st) {
+        Cast c=begin(p,st,"lasso",true,7,28);st.tojiTarget=null;
+        run(p,st,c,28,t->{Vec3 hand=p.getEyePosition().add(p.getLookAngle().scale(1.2));if(t<8)Fx.dust(lv(p),hand,0.75f,0.75f,0.65f,1.4f,6,0.3);if(t==8){List<LivingEntity>a=Combat.line(p,24,0.8);if(!a.isEmpty()&&Combat.hit(p,a.get(0),6f,Combat.BLOCKABLE,true)){st.tojiTarget=a.get(0).getUUID();Combat.knock(a.get(0),p.position().subtract(a.get(0).position()).normalize().scale(0.65));}}if(t==18){LivingEntity e=tojiTarget(p,st);if(e!=null&&e.distanceTo(p)<4){Combat.hit(p,e,6f,Combat.BLOCKABLE,true);Combat.knock(e,Combat.away(p,e).scale(0.8));}}});
+    }
+
+    private static void tojiWhiplash(ServerPlayer p,JState st) {
+        Cast c=begin(p,st,"whiplash",true,5,23);st.tojiVariantUntil=now(p)+28;st.tojiTarget=null;
+        run(p,st,c,23,t->{if(t==5||t==12){List<LivingEntity>a=Combat.line(p,9,1);if(!a.isEmpty()&&Combat.hit(p,a.get(0),2.5f,Combat.BLOCKABLE,true)){st.tojiTarget=a.get(0).getUUID();Combat.knock(a.get(0),Combat.away(p,a.get(0)).scale(0.25));Fx.dust(lv(p),Combat.mid(a.get(0)),0.75f,0.75f,0.65f,1.6f,12,0.35);}}});
+    }
+
+    private static void tojiTwirling(ServerPlayer p,JState st) {
+        LivingEntity e=tojiTarget(p,st);st.tojiVariantUntil=0;Cast c=begin(p,st,"twirling_strike",false,0,26);
+        run(p,st,c,26,t->{if(t>=3&&t<=18&&t%3==0&&e!=null&&e.isAlive()&&e.distanceTo(p)<10){Combat.hit(p,e,1.3f,Combat.UNBLOCKABLE,true);Fx.dust(lv(p),Combat.mid(e),0.8f,0.75f,0.55f,1.4f,8,0.3);}if(t==22&&e!=null&&e.isAlive())Combat.knock(e,Combat.away(p,e).scale(1.2));});
+    }
+
 }
