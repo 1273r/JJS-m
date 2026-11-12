@@ -6,6 +6,7 @@ import java.util.Map;
 public class Kits {
     public static final String HONORED = "honored";
     public static final String VESSEL = "vessel";
+    public static final String TOJI = "toji";
     public static final String[] KEYS = {"1", "2", "3", "4", "R", "X"};
 
     public static String[] slots(String cls, boolean awakened) {
@@ -18,6 +19,12 @@ public class Kits {
             s = awakened
                     ? new String[]{"cleave", "dismantle", "open", "rush", "combat_instincts", "malevolent_shrine"}
                     : new String[]{"cursed_strikes", "crushing_blow", "divergent_fist", "manji_kick", "combat_instincts", ""};
+        } else if (TOJI.equals(cls)) {
+            s = switch (JState.clientWeapon()) {
+                case 1 -> new String[]{"", "transcend", "rupture", "", "hidden_inventory", ""};
+                case 2 -> new String[]{"", "lasso", "whiplash", "", "hidden_inventory", ""};
+                default -> new String[]{"", "flourish", "debilitate", "", "hidden_inventory", ""};
+            };
         } else {
             s = new String[]{"", "", "", "", "", ""};
         }
@@ -33,7 +40,12 @@ public class Kits {
             Map.entry("cursed_strikes", 14), Map.entry("crushing_blow", 15), Map.entry("divergent_fist", 18),
             Map.entry("manji_kick", 20), Map.entry("combat_instincts", 2),
             Map.entry("cleave", 12), Map.entry("dismantle", 13), Map.entry("open", 40),
-            Map.entry("rush", 15), Map.entry("malevolent_shrine", 120));
+            Map.entry("rush", 15), Map.entry("malevolent_shrine", 120),
+            Map.entry("flourish", 15), Map.entry("debilitate", 13), Map.entry("transcend", 14),
+            Map.entry("rupture", 14), Map.entry("lasso", 16), Map.entry("whiplash", 15),
+            Map.entry("hidden_inventory", 5), Map.entry("the_wrath", 15), Map.entry("the_greed", 15),
+            Map.entry("the_pride", 15), Map.entry("ascend", 14), Map.entry("paradise", 14),
+            Map.entry("reincarnation", 14), Map.entry("twirling_strike", 15));
 
     public static int cd(String id) {
         return CD.getOrDefault(id, 10) * 20;
