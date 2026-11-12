@@ -19,6 +19,9 @@ public class JState {
     public Cast cast;
     public long lockUntil, stunUntil, m1Ready, lastM1, dashReady, counterUntil, guardBrokenUntil, bulletUntil, awakeEnd;
     public int m1;
+    /** One queued M1 input, accepted shortly before the current recovery ends. */
+    public boolean m1Buffered;
+    public long m1BufferUntil;
     public boolean blocking, awakened;
     public float guard = MAX_GUARD;
     public float awake;
