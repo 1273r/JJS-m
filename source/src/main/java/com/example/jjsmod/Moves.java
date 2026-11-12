@@ -1064,7 +1064,7 @@ public class Moves {
     private static void tojiSwap(ServerPlayer p, JState st, long n) {
         if (st.cdLeft("hidden_inventory", n) > 0) return;
         if (st.cast != null && st.cast.id.equals("flourish") && n <= st.tojiVariantUntil) { tojiGreed(p, st); return; }
-        st.tojiWeapon = (st.tojiWeapon + 1) % 3;
+        st.tojiWeapon = (st.tojiWeapon + (st.blocking ? 2 : 1)) % 3;
         st.setCd("hidden_inventory", 100, n);
         st.m1 = 0; st.m1Ready = n + 3;
         Fx.sfx(lv(p), p.position(), SoundEvents.ITEM_PICKUP, 1.2f, 0.7f + st.tojiWeapon * 0.2f);
