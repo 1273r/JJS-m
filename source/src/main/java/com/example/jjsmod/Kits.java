@@ -20,15 +20,19 @@ public class Kits {
                     ? new String[]{"cleave", "dismantle", "open", "rush", "combat_instincts", "malevolent_shrine"}
                     : new String[]{"cursed_strikes", "crushing_blow", "divergent_fist", "manji_kick", "combat_instincts", ""};
         } else if (TOJI.equals(cls)) {
-            s = switch (JState.clientWeapon()) {
-                case 1 -> new String[]{"", "transcend", "rupture", "", "hidden_inventory", ""};
-                case 2 -> new String[]{"", "lasso", "whiplash", "", "hidden_inventory", ""};
-                default -> new String[]{"", "flourish", "debilitate", "", "hidden_inventory", ""};
-            };
+            s = tojiSlots(0);
         } else {
             s = new String[]{"", "", "", "", "", ""};
         }
         return s;
+    }
+
+    public static String[] tojiSlots(int weapon) {
+        return switch (weapon) {
+            case 1 -> new String[]{"", "transcend", "rupture", "", "hidden_inventory", ""};
+            case 2 -> new String[]{"", "lasso", "whiplash", "", "hidden_inventory", ""};
+            default -> new String[]{"", "flourish", "debilitate", "", "hidden_inventory", ""};
+        };
     }
 
     // cooldowns in seconds (from the JJS fandom wiki figures)
