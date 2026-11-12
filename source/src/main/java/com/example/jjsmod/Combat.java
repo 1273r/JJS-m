@@ -130,6 +130,38 @@ public class Combat {
         return out;
     }
 
+    /**
+     * Close-range fighting-game hitbox. Unlike a thin ray, this uses a forward
+     * capsule/box with a forgiving angle so a target does not need pixel-perfect aim.
+     * Candidates are sorted by distance and then by how centrally they sit in the swing.
+     */
+    public static List<LivingEntity> melee(ServerPlayer p, double range, double width) {
+        ServerLevel level = lv(p);
+        Vec3 forward = flat(p);
+        Vec3 center = p.position().add(0, p.getBbHeight() * 0.55, 0);
+        Vec3 end = center.add(forward.scale(range));
+        AABB bounds = new AABB(center, end).inflate(width, 1.0, width);
+        List<Hit> hits = new ArrayList<>();
+        for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class, bounds,
+                x -> x != p && x.isAlive() && !x.isSpectator())) {
+            Vec3 offset = mid(e).subtract(center);
+            Vec3 flatOffset = new Vec3(offset.x, 0, offset.z);
+            double distance = flatOffset.length();
+            if (distance > range + e.getBbWidth() * 0.5 || distance < 0.05) continue;
+            double alignment = flatOffset.normalize().dot(forward);
+            if (alignment < 0.20) continue;
+            double side = Math.abs(forward.x * flatOffset.z - forward.z * flatOffset.x);
+            if (side > width + e.getBbWidth() * 0.55) continue;
+            double vertical = Math.abs(mid(e).y - center.y);
+            if (vertical > 1.45 + e.getBbHeight() * 0.35) continue;
+            hits.add(new Hit(e, distance + (1.0 - alignment) * 0.75));
+        }
+        hits.sort(Comparator.comparingDouble(Hit::t));
+        List<LivingEntity> out = new ArrayList<>();
+        for (Hit hit : hits) out.add(hit.e());
+        return out;
+    }
+
     public static List<LivingEntity> around(ServerPlayer p, Vec3 c, double r) {
         return lv(p).getEntitiesOfClass(LivingEntity.class, new AABB(c, c).inflate(r),
                 x -> x != p && x.isAlive() && !x.isSpectator() && x.position().distanceTo(c) <= r + x.getBbWidth());
