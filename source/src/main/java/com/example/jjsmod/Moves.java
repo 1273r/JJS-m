@@ -419,6 +419,10 @@ public class Moves {
                 p.swing(InteractionHand.MAIN_HAND, true);
                 if (Combat.hit(p, tg[0], 17.25f / 9f, Combat.UNBLOCKABLE, true)) {
                     Combat.knock(tg[0], t == 24 ? Combat.away(p, tg[0]).scale(0.9).add(0, 0.3, 0) : Vec3.ZERO);
+                    if (t == 24) {
+                        st.lastRapidTarget = tg[0].getUUID();
+                        st.lastRapidAt = now(p);
+                    }
                     Fx.dust(l, Combat.mid(tg[0]), 0.8f, 0.9f, 1f, 1.2f, 6, 0.3);
                     Fx.sfx(l, Combat.mid(tg[0]), SoundEvents.PLAYER_ATTACK_WEAK, 1f, 1.3f);
                 }
@@ -458,12 +462,85 @@ public class Moves {
         });
     }
 
-    /** Limitless (Special): 15 s, unblockable. The wiki doesn't describe it - this short blink is my guess. [est] */
+    /** Limitless: target blink, aerial kick, and the Rapid Punches Face Grater follow-up. */
     private static void limitless(ServerPlayer p, JState st) {
         long n = now(p);
         if (!st.free(n) || st.cdLeft("limitless", n) > 0) return;
         ServerLevel l = lv(p);
         st.setCd("limitless", Kits.cd("limitless"), n);
+
+        LivingEntity target = null;
+        // Face Grater is only available briefly after Rapid Punches actually connects.
+        if (st.lastRapidTarget != null && n - st.lastRapidAt <= 50) {
+            net.minecraft.world.entity.Entity saved = l.getEntity(st.lastRapidTarget);
+            if (saved instanceof LivingEntity living && living.isAlive() && living.distanceTo(p) <= 8.0) {
+                target = living;
+            }
+        }
+        if (target != null) {
+            LivingEntity grabbed = target;
+            Vec3 away = Combat.away(p, grabbed);
+            Vec3 behind = grabbed.position().subtract(away.scale(1.0));
+            Fx.dust(l, p.position().add(0, 1, 0), 0.7f, 0.9f, 1f, 2f, 22, 0.45);
+            Fx.sfx(l, p.position(), SoundEvents.ENDERMAN_TELEPORT, 1f, 1.5f);
+            p.teleportTo(behind.x, behind.y, behind.z);
+            Cast c = begin(p, st, "face_grater", true, 0, 24);
+            run(p, st, c, 24, t -> {
+                if (!grabbed.isAlive()) return;
+                if (t <= 14) {
+                    Vec3 forward = Combat.flat(p);
+                    Vec3 drag = p.position().add(forward.scale(1.35));
+                    Combat.place(grabbed, drag);
+                    if (t % 3 == 0) {
+                        p.swing(InteractionHand.MAIN_HAND, true);
+                        Fx.dust(l, Combat.mid(grabbed), 0.75f, 0.85f, 1f, 1.0f, 5, 0.2);
+                        Combat.hit(p, grabbed, 7.52f / 5f, Combat.BLOCK_360, true);
+                    }
+                }
+                if (t == 18) {
+                    p.swing(InteractionHand.MAIN_HAND, true);
+                    if (Combat.hit(p, grabbed, 2.5f, Combat.BLOCK_360, true)) {
+                        Vec3 launch = Combat.flat(p);
+                        Combat.knock(grabbed, launch.x * 1.15, 0.42, launch.z * 1.15);
+                        Fx.sfx(l, Combat.mid(grabbed), SoundEvents.PLAYER_ATTACK_CRIT, 1.1f, 1.15f);
+                    }
+                    st.lastRapidTarget = null;
+                }
+            });
+            return;
+        }
+
+        // Standard Limitless locks onto the nearest target in the camera line.
+        List<LivingEntity> targets = Combat.line(p, 24.0, 1.8);
+        if (!targets.isEmpty()) {
+            LivingEntity t = targets.get(0);
+            Vec3 old = p.position();
+            Vec3 away = Combat.away(p, t);
+            Vec3 dest = t.position().subtract(away.scale(1.35));
+            Fx.dust(l, old.add(0, 1, 0), 0.7f, 0.9f, 1f, 2f, 22, 0.45);
+            Fx.sfx(l, old, SoundEvents.ENDERMAN_TELEPORT, 1f, 1.3f);
+            p.teleportTo(dest.x, dest.y, dest.z);
+            p.fallDistance = 0;
+            Fx.dust(l, dest.add(0, 1, 0), 0.7f, 0.9f, 1f, 2f, 22, 0.45);
+            if (!t.onGround() || t.getDeltaMovement().y > 0.12) {
+                Cast c = begin(p, st, "limitless_air_kick", true, 0, 12);
+                run(p, st, c, 12, tick -> {
+                    if (tick == 2 && t.isAlive() && t.distanceTo(p) < 5.0) {
+                        p.swing(InteractionHand.MAIN_HAND, true);
+                        if (Combat.hit(p, t, 8f, Combat.UNBLOCKABLE, true)) {
+                            Vec3 knock = Combat.away(p, t);
+                            Combat.knock(t, knock.x * 0.65, -0.95, knock.z * 0.65);
+                            stun(t, 10);
+                            Fx.dust(l, Combat.mid(t), 0.7f, 0.9f, 1f, 2f, 20, 0.4);
+                            Fx.sfx(l, Combat.mid(t), SoundEvents.PLAYER_ATTACK_CRIT, 1.2f, 1.0f);
+                        }
+                    }
+                });
+            }
+            return;
+        }
+
+        // No target: retain a short forward blink rather than wasting the input.
         Vec3 s = p.getEyePosition();
         Vec3 e = s.add(p.getLookAngle().scale(14.0));
         BlockHitResult r = l.clip(new ClipContext(s, e, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, p));
