@@ -45,6 +45,7 @@ public class Moves {
     private static Cast begin(ServerPlayer p, JState st, String id, boolean interruptible, int windup, int lock) {
         long n = now(p);
         Cast c = new Cast(id, interruptible, n, n + windup);
+        st.m1Buffered = false;
         st.cast = c;
         st.lockUntil = n + lock;
         st.setCd(id, Kits.cd(id), n);
@@ -115,7 +116,17 @@ public class Moves {
     /** M1: 4-hit string, 4th hit knocks back. Damage values are [est]. */
     public static void m1(ServerPlayer p, JState st) {
         long n = now(p);
-        if (!st.free(n) || st.blocking || n < st.m1Ready) return;
+        if (st.blocking || !st.free(n)) return;
+        // Buffer one M1 during the final six ticks of recovery. This makes rapid
+        // strings forgiving without allowing unlimited queued attacks.
+        if (n < st.m1Ready) {
+            if (st.m1Ready - n <= 6) {
+                st.m1Buffered = true;
+                st.m1BufferUntil = n + 7;
+            }
+            return;
+        }
+        st.m1Buffered = false;
         if (n - st.lastM1 > 25) st.m1 = 0;
         st.m1++;
         st.lastM1 = n;
@@ -168,6 +179,7 @@ public class Moves {
         p.hurtMarked = true;
         st.dashReady = n + (front ? 60 : 40);
         st.m1Ready = n; // dash cancels M1 endlag
+        st.m1Buffered = false;
         st.m1 = 0;
         Fx.sfx(lv(p), p.position(), SoundEvents.PLAYER_ATTACK_SWEEP, 0.6f, 1.6f);
         lv(p).sendParticles(ParticleTypes.CLOUD, p.getX(), p.getY() + 0.2, p.getZ(), 8, 0.3, 0.1, 0.3, 0.02);
