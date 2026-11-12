@@ -45,8 +45,8 @@ public class Kits {
             Map.entry("manji_kick", 20), Map.entry("combat_instincts", 2),
             Map.entry("cleave", 12), Map.entry("dismantle", 13), Map.entry("open", 40),
             Map.entry("rush", 15), Map.entry("malevolent_shrine", 120),
-            Map.entry("flourish", 15), Map.entry("debilitate", 13), Map.entry("transcend", 14),
-            Map.entry("rupture", 14), Map.entry("lasso", 16), Map.entry("whiplash", 15),
+            Map.entry("flourish", 16), Map.entry("debilitate", 15), Map.entry("transcend", 16),
+            Map.entry("rupture", 15), Map.entry("lasso", 16), Map.entry("whiplash", 15),
             Map.entry("hidden_inventory", 5), Map.entry("the_wrath", 15), Map.entry("the_greed", 15),
             Map.entry("the_pride", 15), Map.entry("ascend", 14), Map.entry("paradise", 14),
             Map.entry("reincarnation", 14), Map.entry("twirling_strike", 15));
