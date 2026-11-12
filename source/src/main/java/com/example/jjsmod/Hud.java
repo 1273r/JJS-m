@@ -44,6 +44,13 @@ public class Hud {
             case "open" -> "OPEN";
             case "rush" -> "RUSH";
             case "malevolent_shrine" -> "SHRINE";
+            case "flourish" -> "FLOURISH";
+            case "debilitate" -> "DEBILITATE";
+            case "transcend" -> "TRANSCEND";
+            case "rupture" -> "RUPTURE";
+            case "lasso" -> "LASSO";
+            case "whiplash" -> "WHIPLASH";
+            case "hidden_inventory" -> "INVENTORY";
             default -> id.toUpperCase(java.util.Locale.ROOT);
         };
     }
