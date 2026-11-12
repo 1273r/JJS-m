@@ -106,6 +106,23 @@ public final class CombatAnimations {
     /** Slot-specific windup/impact/recovery silhouettes. The phase is intentionally
      * exaggerated so a move reads clearly even with Minecraft's compact player rig. */
     private static void applySkillPose(PlayerModel<?> m, int slot, int ticks) {
+        if (ClientState.cls.equals(Kits.TOJI)) {
+            float p = 1f - ticks / (slot == 4 ? 22f : 26f);
+            float snap = smooth(Math.max(0f, Math.min(1f, (p - 0.28f) / 0.30f)));
+            if (slot == 1 || slot == 2) {
+                int weapon = ClientState.tojiWeapon;
+                m.body.xRot -= 0.08f + snap * 0.12f;
+                m.rightArm.xRot = weapon == 0 ? -0.45f - snap * 1.5f : weapon == 1 ? -0.7f - snap * 1.25f : -0.25f - snap * 1.1f;
+                m.leftArm.xRot = -0.35f - snap * 0.55f;
+                m.rightArm.yRot = -0.25f + (float)Math.sin(p * Math.PI * 5) * 0.18f;
+                m.rightArm.zRot = -0.18f;
+                if (weapon == 2) { m.leftArm.zRot = 0.28f; m.body.yRot += (float)Math.sin(p * Math.PI * 6) * 0.12f; }
+            } else if (slot == 4) {
+                m.body.yRot += (float)Math.sin(p * Math.PI * 2) * 0.12f;
+                m.rightArm.xRot = -0.9f; m.leftArm.xRot = -0.9f;
+            }
+            return;
+        }
         float progress = 1f - ticks / (slot == 5 ? 34f : slot == 4 ? 22f : 26f);
         float wind = smooth(Math.min(1f, progress / 0.42f));
         float hit = smooth(Math.max(0f, Math.min(1f, (progress - 0.42f) / 0.22f)));
