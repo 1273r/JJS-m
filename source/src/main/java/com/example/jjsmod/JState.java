@@ -25,6 +25,9 @@ public class JState {
     public boolean blocking, awakened;
     public float guard = MAX_GUARD;
     public float awake;
+    /** Target captured by Rapid Punches for the follow-up Limitless / Face Grater variant. */
+    public UUID lastRapidTarget;
+    public long lastRapidAt;
 
     private JState(String cls) {
         this.cls = cls;
