@@ -144,7 +144,7 @@ public class Moves {
         p.swing(InteractionHand.MAIN_HAND, true);
         Vec3 forward = Combat.flat(p);
         boolean shrine = st.awakened && Kits.VESSEL.equals(st.cls);
-        double range = shrine ? 24 * Combat.STUD : Kits.TOJI.equals(st.cls) ? (st.tojiWeapon == 2 ? 9 : st.tojiWeapon == 1 ? 7 : 3.55) * Combat.STUD : 3.55;
+        double range = shrine ? 24 * Combat.STUD : Kits.TOJI.equals(st.cls) ? (st.tojiWeapon == 2 ? 9 * Combat.STUD : st.tojiWeapon == 1 ? 7 * Combat.STUD : 3.55) : 3.55;
         List<LivingEntity> targets = shrine
                 ? Combat.line(p, range, 1.0)
                 : Combat.melee(p, range, finisher ? 1.45 : 1.20);
@@ -173,7 +173,7 @@ public class Moves {
         }
 
         LivingEntity target = targets.get(0);
-        float damage = Kits.TOJI.equals(st.cls) ? (finisher ? 5.0f : (chain == 1 ? 4.0f : 5.0f)) : (finisher ? 5.0f : 2.5f);
+        float damage = Kits.TOJI.equals(st.cls) ? (st.tojiWeapon == 2 ? 3.5f : (finisher ? 5.0f : (chain == 1 ? 4.0f : 5.0f))) : (finisher ? 5.0f : 2.5f);
         boolean landed = Combat.hit(p, target, damage,
                 shrine ? Combat.BLOCK_360 : Combat.BLOCKABLE, true);
         if (!landed) {
