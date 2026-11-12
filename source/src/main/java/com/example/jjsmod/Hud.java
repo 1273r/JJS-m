@@ -25,6 +25,29 @@ public class Hud {
         if (fw > 0) g.fill(x, y, x + fw, y + h, fill);
     }
 
+    private static String shortName(String id) {
+        return switch (id) {
+            case "lapse_blue", "lapse_blue_max" -> "BLUE";
+            case "reversal_red", "reversal_red_max" -> "RED";
+            case "rapid_punches" -> "PUNCHES";
+            case "twofold_kick" -> "KICK";
+            case "limitless" -> "LIMITLESS";
+            case "hollow_purple" -> "PURPLE";
+            case "infinite_void" -> "VOID";
+            case "cursed_strikes" -> "STRIKES";
+            case "crushing_blow" -> "CRUSH";
+            case "divergent_fist" -> "DIVERGENT";
+            case "manji_kick" -> "MANJI";
+            case "combat_instincts" -> "INSTINCT";
+            case "cleave" -> "CLEAVE";
+            case "dismantle" -> "DISMANTLE";
+            case "open" -> "OPEN";
+            case "rush" -> "RUSH";
+            case "malevolent_shrine" -> "SHRINE";
+            default -> id.toUpperCase(java.util.Locale.ROOT);
+        };
+    }
+
     public static void render(GuiGraphics g, DeltaTracker dt) {
         if (!ClientState.active) return;
         Minecraft mc = Minecraft.getInstance();
@@ -67,6 +90,7 @@ public class Hud {
             // Small keycap sits above the icon instead of obscuring its artwork.
             g.fill(x + 2, y + 2, x + 13, y + 13, 0xE6000000);
             g.drawCenteredString(font, Kits.KEYS[i], x + 7, y + 3, 0xFFFFFFFF);
+            g.drawCenteredString(font, shortName(id), x + size / 2, y + size + 3, 0xDDE6E6FF);
             x += size + gap;
         }
 
