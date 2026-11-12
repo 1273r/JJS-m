@@ -28,10 +28,16 @@ public class JState {
     /** Target captured by Rapid Punches for the follow-up Limitless / Face Grater variant. */
     public UUID lastRapidTarget;
     public long lastRapidAt;
+    public int tojiWeapon;
+    public long tojiVariantUntil;
+    public UUID tojiTarget;
 
     private JState(String cls) {
         this.cls = cls;
     }
+
+    private static int clientWeaponValue;
+    public static int clientWeapon() { return clientWeaponValue; }
 
     public static JState peek(ServerPlayer p) {
         String cls = p.getPersistentData().getString("jjs_class");
@@ -74,7 +80,7 @@ public class JState {
 
     public void sync(ServerPlayer p) {
         long now = p.level().getGameTime();
-        String[] slots = Kits.slots(cls, awakened);
+        String[] slots = cls.equals(Kits.TOJI) ? Kits.tojiSlots(tojiWeapon) : Kits.slots(cls, awakened);
         int[] left = new int[6];
         int[] total = new int[6];
         for (int i = 0; i < 6; i++) {
