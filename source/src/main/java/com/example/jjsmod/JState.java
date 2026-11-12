@@ -36,9 +36,6 @@ public class JState {
         this.cls = cls;
     }
 
-    private static int clientWeaponValue;
-    public static int clientWeapon() { return clientWeaponValue; }
-
     public static JState peek(ServerPlayer p) {
         String cls = p.getPersistentData().getString("jjs_class");
         if (cls.isEmpty()) {
