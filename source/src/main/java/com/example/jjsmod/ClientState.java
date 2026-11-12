@@ -9,7 +9,7 @@ public class ClientState {
     public static int[] total = new int[6];
 
     // Immediate local animation state: inputs animate before the server HUD packet returns.
-    public static int attackTicks, attackStage, dashTicks;
+    public static int attackTicks, attackStage, dashTicks, hitReactTicks;
     public static float blockBlend;
 
     public static void startAttack() {
@@ -24,11 +24,13 @@ public class ClientState {
     public static void tickAnimations() {
         if (attackTicks > 0) attackTicks--;
         if (dashTicks > 0) dashTicks--;
+        if (hitReactTicks > 0) hitReactTicks--;
         float target = blocking ? 1f : 0f;
         blockBlend += (target - blockBlend) * 0.42f;
     }
 
     public static void apply(HudPayload p) {
+        if (active && p.hp() < hp - 0.01f) hitReactTicks = 7;
         active = !p.cls().isEmpty();
         cls = p.cls();
         awakened = p.awakened();
@@ -48,6 +50,7 @@ public class ClientState {
         attackTicks = 0;
         attackStage = 0;
         dashTicks = 0;
+        hitReactTicks = 0;
         blockBlend = 0f;
     }
 }
