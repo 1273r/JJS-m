@@ -64,7 +64,7 @@ public class Hud {
         int h = g.guiHeight();
 
         // ---- move slots
-        String[] slots = Kits.slots(ClientState.cls, ClientState.awakened);
+        String[] slots = ClientState.cls.equals(Kits.TOJI) ? Kits.tojiSlots(ClientState.tojiWeapon) : Kits.slots(ClientState.cls, ClientState.awakened);
         int n = 0;
         for (String s : slots) if (!s.isEmpty()) n++;
         int size = 42, gap = 5;
