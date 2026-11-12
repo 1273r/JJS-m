@@ -51,6 +51,10 @@ public final class CombatAnimations {
                 model.head.yRot += side * strike * 0.035f;
             }
 
+            if (ClientState.skillTicks > 0 && block < 0.15f) {
+                applySkillPose(model, ClientState.skillSlot, ClientState.skillTicks);
+            }
+
             if (ClientState.hitReactTicks > 0 && block < 0.15f) {
                 float react = ClientState.hitReactTicks / 7f;
                 model.body.xRot += 0.22f * react;
@@ -96,6 +100,72 @@ public final class CombatAnimations {
                 arm.zRot = side * -0.08f;
                 model.body.yRot += -side * arc * 0.10f;
             }
+        }
+    }
+
+    /** Slot-specific windup/impact/recovery silhouettes. The phase is intentionally
+     * exaggerated so a move reads clearly even with Minecraft's compact player rig. */
+    private static void applySkillPose(PlayerModel<?> m, int slot, int ticks) {
+        float progress = 1f - ticks / (slot == 5 ? 34f : slot == 4 ? 22f : 26f);
+        float wind = smooth(Math.min(1f, progress / 0.42f));
+        float hit = smooth(Math.max(0f, Math.min(1f, (progress - 0.42f) / 0.22f)));
+        float recoil = smooth(Math.max(0f, (progress - 0.68f) / 0.32f));
+        float pulse = (float) Math.sin(progress * Math.PI * 9.0);
+        switch (slot) {
+            case 0 -> { // Blue: gather inward, then thrust both hands to pull
+                m.body.xRot -= 0.10f + hit * 0.12f;
+                m.rightArm.xRot = -0.65f - wind * 0.65f - hit * 0.55f + recoil * 0.3f;
+                m.leftArm.xRot = -0.65f - wind * 0.65f - hit * 0.55f + recoil * 0.3f;
+                m.rightArm.yRot = -0.22f + wind * 0.28f;
+                m.leftArm.yRot = 0.22f - wind * 0.28f;
+                m.rightArm.zRot = -0.18f;
+                m.leftArm.zRot = 0.18f;
+            }
+            case 1 -> { // Red: one-arm charge and explosive straight release
+                m.body.yRot += -0.18f * wind + 0.22f * hit;
+                m.body.xRot -= 0.08f * wind + 0.12f * hit;
+                m.rightArm.xRot = -0.35f - wind * 1.25f + hit * 1.65f + recoil * 0.25f;
+                m.rightArm.yRot = -0.35f + wind * 0.45f;
+                m.rightArm.zRot = -0.28f - wind * 0.22f;
+                m.leftArm.xRot = -0.35f - hit * 0.3f;
+            }
+            case 2 -> { // Rapid Punches: alternating chest-level barrage
+                m.body.yRot += pulse * 0.12f;
+                m.body.xRot -= 0.10f;
+                m.rightArm.xRot = -1.05f - Math.max(0f, pulse) * 0.95f;
+                m.leftArm.xRot = -1.05f - Math.max(0f, -pulse) * 0.95f;
+                m.rightArm.zRot = -0.12f;
+                m.leftArm.zRot = 0.12f;
+            }
+            case 3 -> { // Twofold Kick: chamber, high kick, then recoil
+                m.body.xRot += 0.08f + hit * 0.18f;
+                m.body.yRot += 0.08f * wind;
+                m.rightLeg.xRot = -0.25f - wind * 1.45f + hit * 0.65f + recoil * 0.25f;
+                m.rightLeg.yRot = -0.08f;
+                m.leftLeg.xRot = 0.18f + hit * 0.12f;
+                m.rightArm.xRot = -0.8f;
+                m.leftArm.xRot = -0.65f;
+            }
+            case 4 -> { // Limitless: short spatial fold / palm-forward materialization
+                m.body.xRot -= 0.12f * wind;
+                m.body.yRot += (float) Math.sin(progress * Math.PI) * 0.32f;
+                m.rightArm.xRot = -0.45f - wind * 1.0f - hit * 0.45f;
+                m.leftArm.xRot = -0.45f - wind * 0.65f;
+                m.rightArm.yRot = -0.25f;
+                m.leftArm.yRot = 0.25f;
+            }
+            case 5 -> { // Domain hand sign: both forearms rise and close inward
+                float sign = smooth(Math.min(1f, progress / 0.5f));
+                m.body.xRot -= 0.12f * sign;
+                m.rightArm.xRot = -1.25f * sign;
+                m.leftArm.xRot = -1.25f * sign;
+                m.rightArm.yRot = -0.42f * sign;
+                m.leftArm.yRot = 0.42f * sign;
+                m.rightArm.zRot = -0.20f * sign;
+                m.leftArm.zRot = 0.20f * sign;
+                m.head.xRot -= 0.06f * sign;
+            }
+            default -> { }
         }
     }
 
