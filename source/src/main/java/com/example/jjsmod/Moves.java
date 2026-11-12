@@ -237,6 +237,13 @@ public class Moves {
     public static void awaken(ServerPlayer p, JState st) {
         long n = now(p);
         if (st.awakened || st.awake < 100f || !st.free(n)) return;
+        if (Kits.TOJI.equals(st.cls)) {
+            st.awake = 0f; st.cdEnd.clear(); p.heal(50f);
+            Fx.sfx(lv(p), p.position(), SoundEvents.BEACON_ACTIVATE, 1.4f, 0.9f);
+            Fx.dust(lv(p), p.position().add(0,1,0), 0.8f,0.75f,0.55f,2.4f,48,1.0);
+            p.displayClientMessage(Component.literal("PUPPET OF CARNAGE — COOLDOWNS RESET"), true);
+            return;
+        }
         st.awakened = true;
         st.awakeEnd = n + JState.AWAKEN_TICKS;
         if (Kits.VESSEL.equals(st.cls)) {
