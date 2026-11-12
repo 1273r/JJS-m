@@ -51,6 +51,16 @@ public final class CombatAnimations {
                 model.head.yRot += side * strike * 0.035f;
             }
 
+            if (ClientState.hitReactTicks > 0 && block < 0.15f) {
+                float react = ClientState.hitReactTicks / 7f;
+                model.body.xRot += 0.22f * react;
+                model.head.xRot -= 0.10f * react;
+                model.rightArm.xRot = -0.55f * react;
+                model.leftArm.xRot = -0.55f * react;
+                model.rightArm.zRot = -0.28f * react;
+                model.leftArm.zRot = 0.28f * react;
+            }
+
             if (ClientState.dashTicks > 0 && block < 0.15f) {
                 float t = ClientState.dashTicks / 7f;
                 model.body.xRot = -0.20f - (1f - t) * 0.22f;
