@@ -38,7 +38,8 @@ public final class CombatAnimations {
                 ModelPart arm = right ? model.rightArm : model.leftArm;
                 ModelPart support = right ? model.leftArm : model.rightArm;
                 float side = right ? 1f : -1f;
-                boolean finisher = ClientState.attackStage == 4;
+                boolean finisher = ClientState.cls.equals(Kits.TOJI) && ClientState.tojiWeapon != 2
+                        ? ClientState.attackStage == 3 : ClientState.attackStage == 4;
 
                 // Load the shoulder back, drive the fist through the target, then recoil.
                 arm.xRot = -0.28f - wind * 0.78f - strike * (finisher ? 1.78f : 1.30f)
